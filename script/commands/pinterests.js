@@ -78,7 +78,7 @@ module.exports.HakimRun = async ({ api, event, args }) => {
             }
             
             Mirror.client.HakimReply.push({
-                name: module.exports.config.name,
+                name: module.exports.config.title,
                 messageID: info.messageID,
                 author: event.senderID,
                 type: 'more',

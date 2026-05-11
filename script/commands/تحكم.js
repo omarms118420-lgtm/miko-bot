@@ -22,7 +22,7 @@ module.exports.HakimRun = async ({ api, event}) => {
     threadID,
     (err, info) => {
       Mirror.client.HakimReply.push({
-        name: module.exports.config.name,
+        name: module.exports.config.title,
         messageID: info.messageID,
         author: senderID,
         type: "menu"
@@ -54,7 +54,7 @@ module.exports.HakimReply = async ({ api, event, HakimReply}) => {
     api.unsendMessage(HakimReply.messageID);
     return api.sendMessage(prompt, threadID, (err, info) => {
       Mirror.client.HakimReply.push({
-        name: module.exports.config.name,
+        name: module.exports.config.title,
         messageID: info.messageID,
         author: senderID,
         type: nextType
