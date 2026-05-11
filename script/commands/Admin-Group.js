@@ -15,7 +15,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
     const { threadID, messageID, senderID, mentions, messageReply } = event;
     const subCommand = args[0]?.toLowerCase();
 
-    // ==================== تغيير الصورة ====================
+    
     if (subCommand === "صورة" || subCommand === "avatar" || subCommand === "image") {
         let imageUrl = null;
         
@@ -43,7 +43,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== تغيير الاسم ====================
+   
     else if (subCommand === "اسم" || subCommand === "name") {
         const newName = args.slice(1).join(" ");
         if (!newName) return api.sendMessage("⚠️ اكتب الاسم الجديد بعد الأمر", threadID, messageID);
@@ -56,7 +56,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== تغيير الإيموجي ====================
+   
     else if (subCommand === "ايموجي" || subCommand === "emoji") {
         const newEmoji = args[1];
         if (!newEmoji) return api.sendMessage("⚠️ اكتب الإيموجي بعد الأمر\nمثال: مجموعة ايموجي 🤖", threadID, messageID);
@@ -69,7 +69,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== طرد عضو ====================
+    
     else if (subCommand === "طرد" || subCommand === "kick") {
         let targetID = null;
         let targetName = "العضو";
@@ -107,7 +107,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== إضافة عضو ====================
+    
     else if (subCommand === "اضافة" || subCommand === "add") {
         let targetID = null;
         
@@ -131,7 +131,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== ترقية إلى أدمن ====================
+   
     else if (subCommand === "ارفع" || subCommand === "promote") {
         let targetID = null;
         let targetName = "العضو";
@@ -165,7 +165,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== تنزيل من الأدمن ====================
+    
     else if (subCommand === "ازالة" || subCommand === "demote") {
         let targetID = null;
         let targetName = "العضو";
@@ -199,17 +199,17 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== قفل المجموعة ====================
+    
     else if (subCommand === "قفل" || subCommand === "lock") {
         return api.sendMessage("🔒 تم قفل المجموعة (الميزة قيد التطوير)", threadID, messageID);
     }
     
-    // ==================== فتح المجموعة ====================
+    
     else if (subCommand === "فتح" || subCommand === "unlock") {
         return api.sendMessage("🔓 تم فتح المجموعة (الميزة قيد التطوير)", threadID, messageID);
     }
     
-    // ==================== معلومات المجموعة ====================
+    
     else if (subCommand === "عرض" || subCommand === "info") {
         try {
             const threadInfo = await api.getThreadInfo(threadID);
@@ -228,7 +228,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
     
-    // ==================== كنية (فردية) ====================
+  
     else if (subCommand === "كنية" || subCommand === "nick") {
         let targetID = null;
         let nickname = "";
@@ -259,7 +259,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
 
-    // ==================== كنية-الكل ====================
+    
     else if (subCommand === "كنية-الكل" || subCommand === "nickall") {
         const pattern = args.slice(1).join(" ");
         if (!pattern) {
@@ -298,7 +298,7 @@ module.exports.HakimRun = async function({ api, event, args }) {
         }
     }
 
-    // ==================== القائمة الرئيسية ====================
+    
     else {
         const msg = 
 `╭━━━━━[ إدارة المجموعة ]━━━━━╮
