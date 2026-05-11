@@ -1,0 +1,24 @@
+# Mirror Bot 
+
+![Mirror Bot Agent](https://i.postimg.cc/jdbjYvWd/Chat-GPT-Image-10-mayw-2026-04-13-49-m.png)
+
+## معلومات البوت
+- **اسم البوت:** Mirror Bot
+- **الوظيفة:** بوت ماسنجر
+
+## معلومات المطورين
+- **صلاح الدين (Hakim Tracks)**
+  - [حساب فيسبوك](fb.com/Hakim.Tracks.Ch)
+
+## مشاريع أخرى
+- Rock Bot
+- Mirror Bot
+- Mirror Bot Agent 
+- Revo Bot
+
+## التواصل
+- للتواصل مع المطور، استخدم رابط فيسبوك المرفق 
+
+| Facebook | 
+| :---: | 
+| <a href="https://www.facebook.com/Hakim.Tracks.Ch"><img src="https://i.postimg.cc/fyLsTW4T/qr-code-(2).png" /></a>

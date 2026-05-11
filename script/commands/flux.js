@@ -1,0 +1,55 @@
+const axios = require('axios');
+const fs = require('fs-extra');
+const path = require('path');
+
+const baseApiUrl = async () => {
+    const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+    return base.data.mahmud;
+};
+
+module.exports.config = {
+    title: "flux",
+    release: "1.0.0",
+    clearance: 0,
+    author: "Hakim Tracks",
+    summary: "لا يوجد وصف حالياً",
+    section: "عام",
+    syntax: "",
+    delay: 3,
+};
+
+module.exports.HakimRun = async ({ api, event, args }) => {
+    const { threadID, messageID } = event;
+    const prompt = args.join(' ');
+    if (!prompt) return api.sendMessage('❌ يرجى إدخال وصف', threadID, messageID);
+
+    const cacheDir = path.join(__dirname, 'cache');
+    const filePath = path.join(cacheDir, `flux_${Date.now()}.png`);
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+
+    api.setMessageReaction('⏳', messageID, () => {}, true);
+    const waitMsg = await api.sendMessage('⏳ جاري التوليد...', threadID, messageID);
+
+    try {
+        const seed = Math.floor(Math.random() * 1000000);
+        const baseUrl = await baseApiUrl();
+        const url = `${baseUrl}/api/gen?prompt=${encodeURIComponent(prompt)}&model=flux&seed=${seed}`;
+
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        fs.writeFileSync(filePath, Buffer.from(response.data));
+
+        if (waitMsg.messageID) api.unsendMessage(waitMsg.messageID);
+        api.setMessageReaction('✅', messageID, () => {}, true);
+
+        api.sendMessage({
+            body: '✅ 𝐇𝐞𝐫𝐞' + "'" + 's 𝐲𝐨𝐮𝐫 𝐟𝐥𝐮𝐱 𝐢𝐦𝐚𝐠𝐞 𝐛𝐚𝐛𝐲 😘',
+            attachment: fs.createReadStream(filePath)
+        }, threadID, () => {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }, messageID);
+    } catch (err) {
+        api.setMessageReaction('❌', messageID, () => {}, true);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        api.sendMessage('❌ خطأ: ' + err.message, threadID, messageID);
+    }
+};
