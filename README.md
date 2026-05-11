@@ -1,6 +1,6 @@
 # Mirror Bot 
 
-![Mirror Bot Agent](https://i.postimg.cc/jdbjYvWd/Chat-GPT-Image-10-mayw-2026-04-13-49-m.png)
+![Mirror Bot Agent](https://imgur.com/a/KT3OGfu)
 
 ## معلومات البوت
 - **اسم البوت:** Mirror Bot
