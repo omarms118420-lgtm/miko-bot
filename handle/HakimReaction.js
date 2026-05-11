@@ -11,7 +11,7 @@ module.exports = async function({ event, api, userData }) {
 
     if (reactionData.author && reactionData.author !== userID) return;
 
-    const command = Mirror.client.commands.get(reactionData.title);
+    const command = Mirror.client.commands.get(reactionData.name);
     if (!command || !command.HakimReaction) return;
 
     try {
