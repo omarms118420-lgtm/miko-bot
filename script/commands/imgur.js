@@ -11,7 +11,7 @@ module.exports.config = {
     clearance: 0,
     author: "Hakim Tracks",
     summary: "تحويل أي صورة أو فيديو إلى رابط Imgur",
-    section: "الادوات",
+    section: "عـــامـة",
     syntax: "imgur (رد على صورة أو فيديو)",
     delay: 10,
 };
