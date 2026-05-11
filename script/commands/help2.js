@@ -4,19 +4,19 @@ const axios = require('axios');
 
 module.exports.config = {
     title: "اوامر",
-    release: "1.0.2",
+    release: "2.0.1",
     clearance: 0,
     author: "Hakim Tracks",
     summary: "عرض قائمة الأوامر أو تفاصيل أمر معين",
     section: "عـــامـة",
-    syntax: "مساعدة [اسم الأمر]",
+    syntax: "اوامر [اسم الأمر]",
     delay: 5,
 };
 
 const IMAGE_URL = "https://i.postimg.cc/gkwQBD4J/20260317-234353.jpg";
 const LOCAL_IMG_PATH = path.join(__dirname, "img", "menu.png");
 const FALLBACK_IMG_PATH = path.join(__dirname, "cache", "menu.jpg");
-const BOT_NAME = "Mirror Bot";
+const BOT_NAME = "Mirror Bot v2.0.1";
 const DEVELOPER_NAME = "Hakim Tracks";
 
 async function getImageStream() {
@@ -28,8 +28,13 @@ async function getImageStream() {
   
   fs.ensureDirSync(path.dirname(FALLBACK_IMG_PATH));
   if (!fs.existsSync(FALLBACK_IMG_PATH)) {
-    const res = await axios.get(IMAGE_URL, { responseType: "arraybuffer"});
-    fs.writeFileSync(FALLBACK_IMG_PATH, res.data);
+    try {
+        const res = await axios.get(IMAGE_URL, { responseType: "arraybuffer"});
+        fs.writeFileSync(FALLBACK_IMG_PATH, res.data);
+    } catch (e) {
+        console.error("Error downloading help image:", e);
+        return null;
+    }
 }
 
   return fs.createReadStream(FALLBACK_IMG_PATH);
@@ -43,18 +48,20 @@ module.exports.HakimRun = async function({ api, event, args }) {
 
   const uniqueCommands = new Map();
   for (const [alias, cmd] of commandsMap.entries()) {
-    if (!uniqueCommands.has(cmd.config.name)) {
-      uniqueCommands.set(cmd.config.name, cmd);
+    // Use title instead of name
+    if (cmd.config && cmd.config.title && !uniqueCommands.has(cmd.config.title)) {
+      uniqueCommands.set(cmd.config.title, cmd);
     }
   }
 
   if (args.length === 0) {
     
     const grouped = {};
-    for (const [name, cmd] of uniqueCommands.entries()) {
-      const cat = cmd.config.commandCategory || "بدون فئة";
+    for (const [title, cmd] of uniqueCommands.entries()) {
+      // Use section instead of commandCategory
+      const cat = cmd.config.section || "بدون فئة";
       if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(name);
+      grouped[cat].push(title);
     }
 
     
@@ -92,25 +99,26 @@ module.exports.HakimRun = async function({ api, event, args }) {
 
   
   const commandName = args.join(" ").trim().toLowerCase();
-  const command = uniqueCommands.get(commandName) || Array.from(uniqueCommands.values()).find(c => c.config.aliases && c.config.aliases.includes(commandName));
+  const command = uniqueCommands.get(commandName) || Array.from(uniqueCommands.values()).find(c => (c.config.title && c.config.title.toLowerCase() === commandName) || (c.config.aliases && c.config.aliases.includes(commandName)));
 
   if (!command) {
     return api.sendMessage(`❌ الأمر "${commandName}" غير موجود.`, threadID);
   }
 
   const permMap = { 0: "عضو", 1: "أدمن المجموعة", 2: "مطور البوت" };
-  const { name, hasPermission, commandCategory, description, usages, cooldowns, credits } = command.config;
+  // Mapping to new keys: title, clearance, section, summary, syntax, delay
+  const { title, clearance, section, summary, syntax, delay } = command.config;
 
   const details = `╮────∙⋆⋅「 تفاصيل 」⋅⋆∙────╭
 │
-│  ◈ الاســم : ${name}
-│  ◈ الصلاحية : ${permMap[hasPermission] || "غير محددة"}
-│  ◈ الفئــة : ${commandCategory || "غير محددة"}
+│  ◈ الاســم : ${title}
+│  ◈ الصلاحية : ${permMap[clearance] || "غير محددة"}
+│  ◈ الفئــة : ${section || "غير محددة"}
 │
-│  ◈ الوصــف : ${description || "لا يوجد وصف"}
-│  ◈ الاستخدام : ${usages || name}
+│  ◈ الوصــف : ${summary || "لا يوجد وصف"}
+│  ◈ الاستخدام : ${syntax || title}
 │
-│  ◈ الـمـدة : ${cooldowns || 5} ثوانٍ
+│  ◈ الـمـدة : ${delay || 5} ثوانٍ
 │  ◈ المطــور : ${DEVELOPER_NAME}
 │
 ╯───────∙⋆⋅ ※ ⋅⋆∙───────╰`;
@@ -118,4 +126,3 @@ module.exports.HakimRun = async function({ api, event, args }) {
   const imageStream = await getImageStream();
   return api.sendMessage({ body: details, attachment: imageStream }, threadID);
 };
-
