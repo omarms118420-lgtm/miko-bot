@@ -4,7 +4,7 @@ const axios = require("axios");
 const deco = require("../../utils/decorations");
 
 module.exports.config = {
-    title: "مجموعتي",
+    title: "ادارة",
     release: "1.0.0",
     clearance: 1,
     author: "Hakim Tracks",
