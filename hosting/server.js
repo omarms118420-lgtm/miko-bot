@@ -7,8 +7,8 @@ const fs      = require("fs");
 const app  = express();
 const PORT = process.env.PORT || 5000;
 const BOT_START_TIME = Date.now();
-const EXTERNAL_URL   = process.env.REPLIT_DEV_DOMAIN
-  ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null;
+const EXTERNAL_URL   = process.env.RENDER_EXTERNAL_URL
+  || (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -792,6 +792,6 @@ function ping(){
     r.on("error",()=>{});r.on("timeout",()=>r.destroy());r.end();
   }catch(e){}
 }
-setTimeout(()=>{ping();setInterval(ping,2*60*1000);console.log(`\x1b[35m[ميكو 🌸]\x1b[0m Keep-alive فعّال 💓`);},45000);
+setTimeout(()=>{ping();setInterval(ping,14*60*1000);console.log(`\x1b[35m[ميكو 🌸]\x1b[0m Keep-alive فعّال 💓`);},45000);
 
 module.exports=app;
