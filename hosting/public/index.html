@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ميكو هوست | استضافة بوت ميكو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0d14;
+      --bg2: #111422;
+      --bg3: #181c2e;
+      --card: #1a1f35;
+      --card2: #1e2540;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --accent3: #38bdf8;
+      --green: #22d3a5;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: rgba(108, 99, 255, 0.2);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(56,189,248,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating particles */
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.15;
+      animation: float linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 0.15; }
+      90% { opacity: 0.15; }
+      100% { transform: translateY(-100px) scale(1); opacity: 0; }
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 13, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--accent2);
+      text-decoration: none;
+    }
+
+    .nav-logo i { color: var(--accent); font-size: 1.5rem; }
+
+    .nav-badge {
+      font-size: 0.65rem;
+      background: var(--green);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      animation: pulse-badge 2s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--green);
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--green); }
+      50% { opacity: 0.4; box-shadow: none; }
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 5rem 1rem 4rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.4);
+      color: var(--accent2);
+      padding: 6px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.8;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(108,99,255,0.6);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(108,99,255,0.1);
+      border-color: var(--accent);
+    }
+
+    /* STATS GRID */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .section { position: relative; z-index: 1; padding: 3rem 0; }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin-bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+
+    .section-title i { color: var(--accent); }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 16px 16px 0 0;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(108,99,255,0.2);
+    }
+
+    .stat-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin: 0 auto 1rem;
+    }
+
+    .stat-icon.purple { background: rgba(108,99,255,0.2); color: var(--accent2); }
+    .stat-icon.blue { background: rgba(56,189,248,0.2); color: var(--accent3); }
+    .stat-icon.green { background: rgba(34,211,165,0.2); color: var(--green); }
+    .stat-icon.orange { background: rgba(251,146,60,0.2); color: #fb923c; }
+    .stat-icon.pink { background: rgba(244,114,182,0.2); color: #f472b6; }
+    .stat-icon.yellow { background: rgba(250,204,21,0.2); color: #facc15; }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* UPTIME DISPLAY */
+    .uptime-display {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .uptime-display::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(108,99,255,0.05) 0%, rgba(56,189,248,0.05) 100%);
+    }
+
+    .uptime-unit {
+      text-align: center;
+      padding: 1rem 1.5rem;
+      position: relative;
+    }
+
+    .uptime-unit + .uptime-unit::before {
+      content: ':';
+      position: absolute;
+      right: -2px;
+      top: 50%;
+      transform: translateY(-60%);
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .uptime-num {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .uptime-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.8rem;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(108,99,255,0.15);
+      border-color: rgba(108,99,255,0.4);
+    }
+
+    .feature-icon {
+      width: 50px; height: 50px;
+      border-radius: 12px;
+      background: rgba(108,99,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* STATUS BAR */
+    .status-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .status-ok { color: var(--green); }
+    .status-warn { color: #facc15; }
+    .status-err { color: var(--red); }
+
+    /* PING SECTION */
+    .ping-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .ping-box h3 { font-size: 1.2rem; margin-bottom: 0.8rem; }
+    .ping-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+    .ping-url {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      font-size: 0.9rem;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .ping-url span { flex: 1; color: var(--accent2); word-break: break-all; }
+
+    .copy-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Cairo', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--accent2); }
+
+    /* RAM BAR */
+    .ram-bar-container {
+      background: var(--bg2);
+      border-radius: 10px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .ram-bar {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--green), var(--accent));
+      transition: width 1s ease;
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer span { color: var(--accent2); font-weight: 700; }
+
+    /* GLOWING ORBS */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+      opacity: 0.15;
+    }
+
+    .orb1 {
+      width: 400px; height: 400px;
+      background: var(--accent);
+      top: -100px; right: -100px;
+    }
+
+    .orb2 {
+      width: 300px; height: 300px;
+      background: var(--accent3);
+      bottom: -50px; left: -50px;
+    }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .uptime-num { font-size: 2rem; }
+      .uptime-unit { padding: 0.5rem 0.8rem; }
+      nav { padding: 0 1rem; }
+      .hero { padding: 3rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Elements -->
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <i class="fa-solid fa-robot"></i>
+      ميكو هوست
+      <span class="nav-badge">LIVE</span>
+    </a>
+    <div class="nav-status">
+      <div class="dot"></div>
+      <span id="nav-status-text">البوت يعمل</span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge"><i class="fa-solid fa-shield-halved"></i> استضافة مجانية مخصصة</div>
+    <h1>🤖 بوت ميكو<br/>يعمل على مدار الساعة</h1>
+    <p>منصة استضافة مخصصة لبوت ميكو — تتابع حالة البوت، وإحصائياته، ووقت تشغيله في الوقت الفعلي.</p>
+    <div class="hero-buttons">
+      <a href="#stats" class="btn btn-primary"><i class="fa-solid fa-chart-bar"></i> عرض الإحصائيات</a>
+      <a href="#ping" class="btn btn-secondary"><i class="fa-solid fa-heart-pulse"></i> رابط البينج</a>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="container">
+    <div class="status-bar reveal">
+      <div class="status-item status-ok"><i class="fa-solid fa-circle-check"></i> <span>البوت متصل</span></div>
+      <div class="status-item status-ok"><i class="fa-solid fa-database"></i> <span>قاعدة البيانات سليمة</span></div>
+      <div class="status-item status-ok"><i class="fa-solid fa-wifi"></i> <span>الاتصال مستقر</span></div>
+      <div class="status-item" id="status-ping"><i class="fa-solid fa-gauge"></i> <span>جاري قياس البينج...</span></div>
+    </div>
+  </div>
+
+  <!-- UPTIME -->
+  <div class="container section">
+    <h2 class="section-title reveal"><i class="fa-solid fa-clock"></i> وقت التشغيل</h2>
+    <div class="uptime-display reveal">
+      <div class="uptime-unit">
+        <div class="uptime-num" id="up-days">00</div>
+        <div class="uptime-label">يوم</div>
+      </div>
+      <div class="uptime-unit">
+        <div class="uptime-num" id="up-hours">00</div>
+        <div class="uptime-label">ساعة</div>
+      </div>
+      <div class="uptime-unit">
+        <div class="uptime-num" id="up-mins">00</div>
+        <div class="uptime-label">دقيقة</div>
+      </div>
+      <div class="uptime-unit">
+        <div class="uptime-num" id="up-secs">00</div>
+        <div class="uptime-label">ثانية</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="container section" id="stats">
+    <h2 class="section-title reveal"><i class="fa-solid fa-chart-line"></i> إحصائيات البوت</h2>
+    <div class="stats-grid">
+      <div class="stat-card reveal">
+        <div class="stat-icon purple"><i class="fa-solid fa-terminal"></i></div>
+        <div class="stat-value" id="stat-cmds">—</div>
+        <div class="stat-label">أمر مُحمَّل</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-icon blue"><i class="fa-solid fa-bolt"></i></div>
+        <div class="stat-value" id="stat-events">—</div>
+        <div class="stat-label">حدث تلقائي</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-value" id="stat-groups">—</div>
+        <div class="stat-label">مجموعة نشطة</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-icon orange"><i class="fa-solid fa-user"></i></div>
+        <div class="stat-value" id="stat-users">—</div>
+        <div class="stat-label">مستخدم مسجّل</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-icon pink"><i class="fa-solid fa-memory"></i></div>
+        <div class="stat-value" id="stat-ram">—</div>
+        <div class="stat-label">ذاكرة مستخدمة (MB)</div>
+        <div class="ram-bar-container">
+          <div class="ram-bar" id="ram-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-icon yellow"><i class="fa-brands fa-node-js"></i></div>
+        <div class="stat-value" id="stat-node" style="font-size:1.2rem;">—</div>
+        <div class="stat-label">إصدار Node.js</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="container section">
+    <h2 class="section-title reveal"><i class="fa-solid fa-star"></i> مميزات البوت</h2>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-download"></i></div>
+        <h3>تنزيل الفيديوهات تلقائياً</h3>
+        <p>أرسل أي رابط من يوتيوب أو تيكتوك أو إنستغرام والبوت يرسل الفيديو تلقائياً بدون أوامر.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-list"></i></div>
+        <h3>قائمة أوامر تفاعلية</h3>
+        <p>قائمة أوامر باللغة العربية الكاملة مع دعم الرد برقم القسم لعرض الأوامر فوراً.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-robot"></i></div>
+        <h3>ذكاء اصطناعي</h3>
+        <p>تحدث مع البوت بالعربية واحصل على ردود ذكية فورية عبر الذكاء الاصطناعي.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-gamepad"></i></div>
+        <h3>ألعاب وترفيه</h3>
+        <p>ألعاب تفاعلية، مسابقات، نظام نقاط وعملات داخل المجموعات.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>إدارة متقدمة</h3>
+        <p>أوامر إدارة قوية: طرد، تنبيه، إشعارات، حظر، ترحيب تلقائي وأكثر.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <h3>تشغيل مستمر</h3>
+        <p>البوت يعمل على مدار الساعة بدون انقطاع مع نظام إعادة تشغيل تلقائي.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PING SECTION -->
+  <div class="container section" id="ping">
+    <h2 class="section-title reveal"><i class="fa-solid fa-heart-pulse"></i> رابط البينج (UptimeRobot)</h2>
+    <div class="ping-box reveal">
+      <h3><i class="fa-solid fa-link"></i> أضف هذا الرابط في UptimeRobot للتشغيل المستمر</h3>
+      <p>استخدم خدمة UptimeRobot المجانية وأضف الرابط أدناه لضمان بقاء البوت يعمل دائماً.</p>
+      <div class="ping-url">
+        <span id="ping-url-text">جاري تحميل الرابط...</span>
+        <button class="copy-btn" onclick="copyPing()"><i class="fa-solid fa-copy"></i> نسخ</button>
+      </div>
+      <br/>
+      <p style="color:var(--muted); font-size:0.82rem;">
+        <i class="fa-solid fa-circle-info"></i>
+        اضبط الفاصل الزمني على <strong>5 دقائق</strong> في UptimeRobot للحصول على أفضل نتيجة.
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>صُنع بـ <span>♥</span> لبوت <span>ميكو</span> — جميع الحقوق محفوظة &copy; 2025</p>
+    <p style="margin-top:0.5rem; font-size:0.78rem;">يتم تحديث الإحصائيات كل 5 ثوانٍ تلقائياً</p>
+  </footer>
+
+  <script>
+    // Particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 6 + 2;
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        animation-duration:${Math.random()*20+10}s;
+        animation-delay:${Math.random()*10}s;
+        background:${Math.random()>0.5?'#6c63ff':'#38bdf8'};
+      `;
+      container.appendChild(p);
+    }
+
+    // Scroll Reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Ping URL
+    const pingUrl = window.location.origin + '/ping';
+    document.getElementById('ping-url-text').textContent = pingUrl;
+
+    function copyPing() {
+      navigator.clipboard.writeText(pingUrl).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+        btn.style.background = '#22d3a5';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-solid fa-copy"></i> نسخ';
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    let localStartTime = null;
+    let uptimeOffset = 0;
+
+    // Fetch stats from API
+    async function fetchStats() {
+      try {
+        const pingStart = performance.now();
+        const res = await fetch('/api/stats');
+        const pingTime = Math.round(performance.now() - pingStart);
+        const data = await res.json();
+
+        // Store start time for local counter
+        if (!localStartTime) {
+          uptimeOffset = data.uptime.total;
+          localStartTime = Date.now();
+        }
+
+        // Stats
+        document.getElementById('stat-cmds').textContent = data.commands;
+        document.getElementById('stat-events').textContent = data.events;
+        document.getElementById('stat-groups').textContent = data.groups;
+        document.getElementById('stat-users').textContent = data.users;
+        document.getElementById('stat-ram').textContent = data.ram;
+        document.getElementById('stat-node').textContent = data.nodeVersion;
+        document.getElementById('nav-status-text').textContent = 'البوت يعمل — ' + data.prefix + 'help';
+
+        // RAM bar
+        const ramPercent = Math.min(data.ram / 5, 100);
+        document.getElementById('ram-bar').style.width = ramPercent + '%';
+
+        // Ping
+        const pingEl = document.getElementById('status-ping');
+        pingEl.innerHTML = `<i class="fa-solid fa-gauge"></i> <span>البينج: ${pingTime}ms</span>`;
+        pingEl.className = 'status-item ' + (pingTime < 200 ? 'status-ok' : pingTime < 500 ? 'status-warn' : 'status-err');
+
+      } catch (e) {
+        document.getElementById('nav-status-text').textContent = 'جاري الاتصال...';
+      }
+    }
+
+    // Local uptime counter (smooth)
+    function tickUptime() {
+      if (localStartTime === null) return;
+      const elapsed = Math.floor((Date.now() - localStartTime) / 1000) + uptimeOffset;
+      const d = Math.floor(elapsed / 86400);
+      const h = Math.floor((elapsed % 86400) / 3600);
+      const m = Math.floor((elapsed % 3600) / 60);
+      const s = elapsed % 60;
+      document.getElementById('up-days').textContent = pad(d);
+      document.getElementById('up-hours').textContent = pad(h);
+      document.getElementById('up-mins').textContent = pad(m);
+      document.getElementById('up-secs').textContent = pad(s);
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 5000);
+    setInterval(tickUptime, 1000);
+  </script>
+</body>
+</html>

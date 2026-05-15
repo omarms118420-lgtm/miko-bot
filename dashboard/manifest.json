@@ -1,0 +1,40 @@
+{
+  "name": "بوت ميكو - GoatBot",
+  "short_name": "ميكو",
+  "description": "لوحة تحكم بوت ميكو على فيسبوك ماسنجر",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "تشغيل البوت",
+      "url": "/",
+      "description": "الصفحة الرئيسية"
+    },
+    {
+      "name": "لوحة التحكم",
+      "url": "/dashboard",
+      "description": "إدارة البوت"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["utilities", "productivity"]
+}

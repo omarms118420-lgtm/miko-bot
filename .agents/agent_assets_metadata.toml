@@ -1,0 +1,25 @@
+uploads = []
+
+[[generated]]
+id = "pz_YpTf0qAoQhF-0i-7LY"
+uri = "file://assets/menu_anime_girl.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "zNc1HpmqWmwoLOAslGazf"
+uri = "file://assets/miko_avatar.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "SKyUfrJqafGqBdM0Ffb8j"
+uri = "file://assets/miko_sticker.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "G7gzGJJH6C_ztzhKKaNjF"
+uri = "file://wispbyte-deploy.zip"
+type = "unspecified"
+title = "مشروع بوت ميكو - جاهز للرفع على WispByte"

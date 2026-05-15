@@ -1,0 +1,19 @@
+name: miko-bot
+services:
+  - name: bot
+    type: worker
+    docker:
+      dockerfile: Dockerfile
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+    ports:
+      - port: 5000
+        protocol: http
+    health_checks:
+      - path: /ping
+        port: 5000
+        interval: 30
+        timeout: 5
