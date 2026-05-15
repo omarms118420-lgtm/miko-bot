@@ -2,6 +2,10 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 
+
+// منع الإرسال المزدوج
+const _menuCooldown = new Map();
+
 module.exports.config = {
     title: "اوامر",
     release: "2.0.1",
@@ -13,7 +17,7 @@ module.exports.config = {
     delay: 5,
 };
 
-const IMAGE_URL = "https://i.imgur.com/aAO58sQ.jpeg";
+const IMAGE_URL = "https://media.tenor.com/yAVkxZ3_fgcAAAAC/anime-sakura.gif";
 const LOCAL_IMG_PATH = path.join(__dirname, "img", "menu.png");
 const FALLBACK_IMG_PATH = path.join(__dirname, "cache", "menu.jpg");
 const BOT_NAME = "Mirror Bot v2.0.1";
@@ -44,6 +48,10 @@ async function getImageStream() {
 
 module.exports.HakimRun = async function({ api, event, args }) {
   const { threadID } = event;
+  // منع التكرار: تجاهل إذا أُرسلت القائمة لنفس المجموعة خلال 5 ثوان
+  const _now = Date.now();
+  if (_menuCooldown.has(threadID) && _now - _menuCooldown.get(threadID) < 5000) return;
+  _menuCooldown.set(threadID, _now);
   const commandsMap = Mirror.client.commands;
 
   const uniqueCommands = new Map();
