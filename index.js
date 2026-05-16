@@ -11,56 +11,64 @@
 const { spawn } = require("child_process");
 const log = require("./logger/log.js");
 
-// ─── state (module-level, not on the global object) ───────────────────────────
-let _child       = null;   // current child process
-let _token       = 0;      // incremented every startBot(); close handlers ignore stale tokens
-let _pendingTmr  = null;   // auto-restart timer
-let _manualStop  = false;
-let _crashCount  = 0;
-let _lastCrash   = 0;
-let _statusGuard = null;   // failsafe timer: clears "restarting" if stuck
+// ─── Prevent the PARENT process from ever dying ──────────────────────────────
+process.on("uncaughtException",  err => { log.error("PARENT", "uncaughtException: " + err.message); });
+process.on("unhandledRejection", err => { log.warn("PARENT",  "unhandledRejection: " + (err?.message || err)); });
 
-function ts() { return new Date().toLocaleTimeString("ar"); }
+// ─── Keep the event-loop alive on Render ─────────────────────────────────────
+setInterval(() => {}, 30000);
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let _child        = null;
+let _token        = 0;
+let _pendingTmr   = null;
+let _manualStop   = false;
+let _crashCount   = 0;
+let _lastCrash    = 0;
+let _statusGuard  = null;
+let _stableTmr    = null;   // reset crashCount after 120 s of stable run
+let _memWatcher   = null;
+
+function ts()  { return new Date().toLocaleTimeString("ar"); }
 
 function addLog(msg) {
   const mgr = global.botManager;
   mgr.logs.push({ time: Date.now(), msg });
-  if (mgr.logs.length > 80) mgr.logs.shift();
+  if (mgr.logs.length > 100) mgr.logs.shift();
 }
 
 function setStatus(s, err) {
-  global.botManager.status   = s;
+  global.botManager.status = s;
   if (err !== undefined) global.botManager.errorMsg = err;
 }
 
-// ─── global.botManager (exposed to server.js) ─────────────────────────────────
+// ─── global.botManager ───────────────────────────────────────────────────────
 global.botManager = {
-  status:   "stopped",
-  pid:      null,
+  status:    "stopped",
+  pid:       null,
   startTime: null,
-  errorMsg: "",
-  logs:     [],
+  errorMsg:  "",
+  logs:      [],
 
   restart() {
-    // cancel any pending timers
     if (_pendingTmr)  { clearTimeout(_pendingTmr);  _pendingTmr  = null; }
     if (_statusGuard) { clearTimeout(_statusGuard); _statusGuard = null; }
-
-    _manualStop  = false;
-    _crashCount  = 0;
+    if (_stableTmr)   { clearTimeout(_stableTmr);   _stableTmr   = null; }
+    _manualStop = false;
+    _crashCount = 0;
     setStatus("restarting", "");
     addLog(`[${ts()}] 🔄 جاري إعادة التشغيل...`);
     log.info("BOT", "إعادة التشغيل من لوحة التحكم...");
 
-    // Failsafe: if still "restarting" after 20s → force start
+    // Failsafe: force start if still stuck after 25s
     _statusGuard = setTimeout(() => {
       _statusGuard = null;
       if (global.botManager.status === "restarting") {
-        log.warn("BOT", "Failsafe: لم تكتمل إعادة التشغيل — إعادة محاولة...");
+        log.warn("BOT", "Failsafe: إعادة محاولة التشغيل...");
         _child = null;
         startBot();
       }
-    }, 20000);
+    }, 25000);
 
     if (_child) {
       try { _child.kill("SIGTERM"); }
@@ -74,6 +82,8 @@ global.botManager = {
   stop() {
     if (_pendingTmr)  { clearTimeout(_pendingTmr);  _pendingTmr  = null; }
     if (_statusGuard) { clearTimeout(_statusGuard); _statusGuard = null; }
+    if (_stableTmr)   { clearTimeout(_stableTmr);   _stableTmr   = null; }
+    if (_memWatcher)  { clearInterval(_memWatcher); _memWatcher  = null; }
     _manualStop = true;
     setStatus("stopped", "");
     addLog(`[${ts()}] ⏹️ تم إيقاف البوت.`);
@@ -86,6 +96,7 @@ global.botManager = {
     if (s === "running" || s === "starting") return false;
     if (_pendingTmr)  { clearTimeout(_pendingTmr);  _pendingTmr  = null; }
     if (_statusGuard) { clearTimeout(_statusGuard); _statusGuard = null; }
+    if (_stableTmr)   { clearTimeout(_stableTmr);   _stableTmr   = null; }
     _manualStop = false;
     _crashCount = 0;
     setStatus("stopped", "");
@@ -94,34 +105,53 @@ global.botManager = {
   }
 };
 
-// ─── Start web server ──────────────────────────────────────────────────────────
+// ─── Web server ───────────────────────────────────────────────────────────────
 try { require("./hosting/server.js"); }
 catch (e) { console.error("[host]", e.message); }
 
-// ─── Bot launcher ──────────────────────────────────────────────────────────────
+// ─── Bot launcher ─────────────────────────────────────────────────────────────
 function startBot() {
   const mgr   = global.botManager;
-  const token = ++_token;           // unique ID for this launch
+  const token = ++_token;
 
   setStatus("starting", "");
   mgr.startTime = Date.now();
   mgr.pid = null;
-  addLog(`[${ts()}] ▶️ تشغيل البوت...`);
+  addLog(`[${ts()}] ▶️ تشغيل البوت... (محاولة ${_crashCount + 1})`);
 
-  const child = spawn("node", ["Mahi.js"], {
-    cwd: __dirname, stdio: "pipe", shell: true
+  const child = spawn("node", ["--max-old-space-size=512", "Mahi.js"], {
+    cwd: __dirname, stdio: "pipe", shell: false
   });
 
-  _child   = child;
-  mgr.pid  = child.pid;
+  _child  = child;
+  mgr.pid = child.pid;
 
-  // Mark "running" after 8 s if still alive and this is still the active token
+  // Mark running after 8 s if still alive
   const aliveTmr = setTimeout(() => {
     if (_token === token && (mgr.status === "starting" || mgr.status === "restarting")) {
       setStatus("running");
       addLog(`[${ts()}] ✅ البوت يعمل!`);
+      // Start stable-run timer: reset crashCount after 120 s continuous run
+      _stableTmr = setTimeout(() => {
+        _stableTmr  = null;
+        _crashCount = 0;
+        addLog(`[${ts()}] 💚 البوت مستقر — تصفير عداد الأعطال`);
+      }, 120000);
     }
   }, 8000);
+
+  // Memory watchdog: restart child if RSS > 480 MB
+  if (_memWatcher) clearInterval(_memWatcher);
+  _memWatcher = setInterval(() => {
+    if (_token !== token || !_child) { clearInterval(_memWatcher); return; }
+    try {
+      const mem = process.memoryUsage().rss / 1024 / 1024;
+      if (mem > 480) {
+        addLog(`[${ts()}] ⚠️ ذاكرة عالية (${mem.toFixed(0)}MB) — إعادة تشغيل تلقائية`);
+        global.botManager.restart();
+      }
+    } catch(_) {}
+  }, 5 * 60 * 1000);
 
   if (child.stdout) {
     child.stdout.on("data", data => {
@@ -130,13 +160,13 @@ function startBot() {
       process.stdout.write(data);
       addLog(`[${ts()}] ${line.slice(0, 300)}`);
       if (/DONE|listening|Logged in|Connected|تم تشغيل البوت|(LOGIN.*✓)/i.test(line)) {
-        if (_token === token) { setStatus("running"); }
+        if (_token === token) setStatus("running");
       }
-      if (/Không tìm thấy cookie|cookie.*không/i.test(line)) {
+      if (/Không tìm thấy cookie|cookie.*không/i.test(line))
         mgr.errorMsg = "كوكيز غير صالحة ❌ — غيّر الكوكيز";
-      }
     });
   }
+
   if (child.stderr) {
     child.stderr.on("data", data => {
       const line = data.toString().trim();
@@ -152,40 +182,41 @@ function startBot() {
 
   child.on("close", code => {
     clearTimeout(aliveTmr);
-
-    // Stale child — a newer process already took over
     if (_token !== token) return;
 
-    _child   = null;
-    mgr.pid  = null;
+    if (_stableTmr)   { clearTimeout(_stableTmr);   _stableTmr   = null; }
+    if (_memWatcher)  { clearInterval(_memWatcher);  _memWatcher  = null; }
+    if (_statusGuard) { clearTimeout(_statusGuard);  _statusGuard = null; }
 
-    // Clear the failsafe guard since we're handling the close properly
-    if (_statusGuard) { clearTimeout(_statusGuard); _statusGuard = null; }
+    _child  = null;
+    mgr.pid = null;
 
-    // Manual stop — done
     if (_manualStop) { setStatus("stopped"); return; }
 
-    // Crash detection
+    // Exponential backoff
     const now = Date.now();
-    if (now - _lastCrash < 10000) _crashCount++;
-    else _crashCount = 0;
+    if (now - _lastCrash < 15000) _crashCount++;
+    else if (now - _lastCrash > 120000) _crashCount = 0;  // stable reset
     _lastCrash = now;
 
-    if (_crashCount >= 3) {
-      if (!mgr.errorMsg) mgr.errorMsg = "البوت يتوقف باستمرار ❌ — تحقق من الكوكيز";
+    // After 5 rapid crashes → long pause
+    if (_crashCount >= 5) {
+      if (!mgr.errorMsg) mgr.errorMsg = "البوت يتوقف باستمرار ❌ — تحقق من الكوكيز أو الشبكة";
       setStatus("error");
-      addLog(`[${ts()}] ❌ فشل متكرر — انتظار 30 ثانية`);
+      addLog(`[${ts()}] ❌ ${_crashCount} أعطال متتالية — انتظار 60 ثانية`);
       _pendingTmr = setTimeout(() => {
         _pendingTmr = null;
         _crashCount = 0;
-        if (!_manualStop) startBot();
-      }, 30000);
+        if (!_manualStop) { setStatus("stopped"); startBot(); }
+      }, 60000);
       return;
     }
 
-    const delay = Math.min(_crashCount * 4000, 15000) || 2000;
+    // Exponential delay: 3s, 6s, 12s, 20s, 30s
+    const delays = [3000, 6000, 12000, 20000, 30000];
+    const delay  = delays[Math.min(_crashCount, delays.length - 1)];
     setStatus("stopped");
-    addLog(`[${ts()}] ⚠️ توقف (${code}) — إعادة بعد ${delay/1000}ث`);
+    addLog(`[${ts()}] ⚠️ توقف (exit:${code ?? "?"}) — إعادة بعد ${delay/1000}ث`);
 
     _pendingTmr = setTimeout(() => {
       _pendingTmr = null;
@@ -196,13 +227,26 @@ function startBot() {
   child.on("error", err => {
     clearTimeout(aliveTmr);
     if (_token !== token) return;
+    if (_stableTmr)  { clearTimeout(_stableTmr);  _stableTmr  = null; }
+    if (_memWatcher) { clearInterval(_memWatcher); _memWatcher = null; }
     _child = null; mgr.pid = null;
     mgr.errorMsg = err.message;
     setStatus("stopped");
-    addLog(`[ERR] ${err.message}`);
+    addLog(`[ERR ${ts()}] ${err.message}`);
     _pendingTmr = setTimeout(() => { _pendingTmr = null; if (!_manualStop) startBot(); }, 5000);
   });
 }
 
-setInterval(() => {}, 60000);
+// ─── Graceful SIGTERM (Render sends this before shutdown) ────────────────────
+process.on("SIGTERM", () => {
+  addLog(`[${ts()}] 🛑 SIGTERM — حفظ الحالة...`);
+  if (_child) { try { _child.kill("SIGTERM"); } catch(_) {} }
+  setTimeout(() => process.exit(0), 3000);
+});
+
+process.on("SIGINT", () => {
+  if (_child) { try { _child.kill("SIGTERM"); } catch(_) {} }
+  process.exit(0);
+});
+
 startBot();
