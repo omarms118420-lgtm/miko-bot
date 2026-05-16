@@ -7,7 +7,7 @@ const http = require("http");
 const https = require("https");
 
 const PORT         = process.env.PORT || 5000;
-const EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || null;
+const EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || "https://miko-bot-y7o5.onrender.com";
 
 // ── Tiny HTTP server (Render requires a web port to stay alive) ──────────────
 const server = http.createServer((req, res) => {
